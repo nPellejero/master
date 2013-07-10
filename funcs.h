@@ -1,5 +1,5 @@
-#ifndef FUNCS_H
-#define FUNCS_H
+#ifndef __FUNCS_H__
+#define __FUNCS_H__
 
 #include <stdio.h>
 #include <stdlib.h> 
@@ -32,39 +32,11 @@
 #define VERDADERO !FALSO
 #define TAM 80
 
-IplImage ** arrCaras;                    //Array de imágenes de caras
-CvMat    *  numPersonaMat; 	         //Array de ID's de personas
-int numCarasEntrenamiento;               //Cantidad de imágenes de entrenamiento
-int numEigens;                           //Cantidad de AutoVectores y AutoValores (Eigens)
-IplImage * pAvgTrainImg;                 //Imágen promedio
-IplImage ** arrAutoVectores;             //AutoVecotores
-CvMat * matAutoValores;                  //AutoValores
-CvMat * matImgEntrenamientoProyectadas;  //Imágenes de entrenamiento proyectadas en el subespacio PCA
-CvHaarClassifierCascade *cascade_f;		 //Cascada de Clasificacion de Rostros
-CvMemStorage            *storage;        //Almacenamiento de informacion
-int Aux;                                 //variable auxiliar para saber si se crea una imagen
-int Entrenando, Reconociendo, Comenzar;
-extern int alphasort();					 //funcion que determina el orden alfabetico, usado para ordenar las fotos de entrenamiento mientras las carga
-char trayectoria[MAXPATHLEN];			 // lugar donde se almacenara el directorio actual de trabajo
-int AnchoImg;							// Auxiliar para la funcion de escalado
-int AltoImg;							// Auxiliar para la funcion de escalado
-int ancho;								// Auxiliar para la funcion de escalado
-int alto;								// Auxiliar para la funcion de escalado
-int caraaux,cara2;
-
-/*Carga de entorno gráfico*/
-IplImage* bienvenida   = cvLoadImage("facemeprints/faceme_presentacion.jpg");
-IplImage* salida       = cvLoadImage("facemeprints/faceme_salida.jpg");
-IplImage* carga        = cvLoadImage("facemeprints/faceme_cargando.jpg");
-IplImage* reconociendo = cvLoadImage("facemeprints/faceme_reconociendo.jpg");
-IplImage* final        = cvLoadImage("facemeprints/faceme_exito.jpg");
-
-struct dirent **archivos;
-struct dirent **carpetas;
+extern struct dirent **archivos;
+extern struct dirent **carpetas;
 
 int selecc_arch(const struct dirent *entry);
 int selecc_carpetas(const struct dirent *entry);
-/*
 void entrenar();
 void reconocer(char archivoNombresImg[512]);
 void PCA();
@@ -77,9 +49,26 @@ void relacion();
 void escalado(char * name);
 void detectFaces(IplImage * img);
 void detectar(IplImage * img);
-
-
 void ver_imagen(IplImage* imagen);
-*/
+
+extern IplImage ** arrCaras;                    //Array de imágenes de caras
+extern CvMat    *  numPersonaMat; 	         //Array de ID's de personas
+extern int numCarasEntrenamiento;               //Cantidad de imágenes de entrenamiento
+extern int numEigens;                           //Cantidad de AutoVectores y AutoValores (Eigens)
+extern IplImage * pAvgTrainImg;                 //Imágen promedio
+extern IplImage ** arrAutoVectores;             //AutoVecotores
+extern CvMat * matAutoValores;                  //AutoValores
+extern CvMat * matImgEntrenamientoProyectadas;  //Imágenes de entrenamiento proyectadas en el subespacio PCA
+extern CvHaarClassifierCascade *cascade_f;		 //Cascada de Clasificacion de Rostros
+extern CvMemStorage            *storage;        //Almacenamiento de informacion
+extern int Aux;                                 //variable auxiliar para saber si se crea una imagen
+extern int Entrenando, Reconociendo, Comenzar;
+extern int alphasort();					 //funcion que determina el orden alfabetico, usado para ordenar las fotos de entrenamiento mientras las carga
+extern char trayectoria[MAXPATHLEN];			 // lugar donde se almacenara el directorio actual de trabajo
+extern int AnchoImg;							// Auxiliar para la funcion de escalado
+extern int AltoImg;							// Auxiliar para la funcion de escalado
+extern int ancho;								// Auxiliar para la funcion de escalado
+extern int alto;								// Auxiliar para la funcion de escalado
+extern int caraaux,cara2;
 
 #endif

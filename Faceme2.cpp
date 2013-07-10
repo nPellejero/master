@@ -514,7 +514,7 @@ void PCA()
 	/*Compute average image, eigenvalues, and eigenvectors (this means that'll compute a basis).
 	Calcula el subespacio para las caras de entrenamiento*/
 	PCAgpu(numCarasEntrenamiento, (void*)arrCaras, arrAutoVectores, pAvgTrainImg2, matAutoValores->data.fl);
-	imprimirMat(pAvgTrainImg2);
+	//imprimirMat(pAvgTrainImg2);
 
 	cvCalcEigenObjects(
 		numCarasEntrenamiento,              

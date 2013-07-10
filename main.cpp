@@ -1,6 +1,12 @@
-#include "funcs.h"
-#include 	
 
+#include "funcs.h"
+
+/*Carga de entorno gráfico*/
+IplImage* bienvenida   = cvLoadImage("facemeprints/faceme_presentacion.jpg");
+IplImage* salida       = cvLoadImage("facemeprints/faceme_salida.jpg");
+IplImage* carga        = cvLoadImage("facemeprints/faceme_cargando.jpg");
+IplImage* reconociendo = cvLoadImage("facemeprints/faceme_reconociendo.jpg");
+IplImage* final        = cvLoadImage("facemeprints/faceme_exito.jpg");
 
 void presentacion()
 {	
@@ -30,7 +36,7 @@ int main(int argc, char** argv)
 {
 	char* aux = argv[1];
 	
-	presentacion();
+	//presentacion();
 	
 	cvNamedWindow("Cargando...");
 	cvMoveWindow("Cargando...", 300, 0);

@@ -1,3 +1,4 @@
+
 #include "funcs.h"
 
 
@@ -454,5 +455,4 @@ int selecc_arch(const struct dirent *entry)
         return(FALSO);
 
 }
-
 

@@ -1,6 +1,7 @@
 #include "funcs.h"
 
 
+
 /*------------------RECONOCER------------------*/
 
 void reconocer(char archivoNombresImg[512])
@@ -61,7 +62,7 @@ void reconocer(char archivoNombresImg[512])
 		
 		
 		char strAux[99] = "La Persona es: ";
-		
+		char final[10] = "final";
 		
 		cvNamedWindow("Exito");
 		cvMoveWindow("Exito", 300, 0);
@@ -91,4 +92,3 @@ void reconocer(char archivoNombresImg[512])
 	
 	return;
 }
-

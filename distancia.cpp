@@ -105,4 +105,3 @@ int encontrarVecinoCercano(float * imgAReconocerProyectada)
 	return caraEntrenamientoCercana;
 }
 
-
