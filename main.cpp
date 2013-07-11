@@ -1,13 +1,6 @@
 
 #include "funcs.h"
 
-/*Carga de entorno gráfico*/
-IplImage* bienvenida   = cvLoadImage("facemeprints/faceme_presentacion.jpg");
-IplImage* salida       = cvLoadImage("facemeprints/faceme_salida.jpg");
-IplImage* carga        = cvLoadImage("facemeprints/faceme_cargando.jpg");
-IplImage* reconociendo = cvLoadImage("facemeprints/faceme_reconociendo.jpg");
-IplImage* final        = cvLoadImage("facemeprints/faceme_exito.jpg");
-
 void presentacion()
 {	
 	

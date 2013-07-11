@@ -8,8 +8,11 @@ CvMat    *  numPersonaMat; 	         //Array de ID's de personas
 int numCarasEntrenamiento;               //Cantidad de imágenes de entrenamiento
 int numEigens;                           //Cantidad de AutoVectores y AutoValores (Eigens)
 IplImage * pAvgTrainImg;                 //Imágen promedio
+IplImage * pAvgTrainImg2;                 //Imágen promedio de prueba
 IplImage ** arrAutoVectores;             //AutoVecotores
+IplImage ** arrAutoVectores2;             //AutoVecotores de prueba
 CvMat * matAutoValores;                  //AutoValores
+CvMat * matAutoValores2;                  //AutoValores de prueba
 CvMat * matImgEntrenamientoProyectadas;  //Imágenes de entrenamiento proyectadas en el subespacio PCA
 CvHaarClassifierCascade *cascade_f;		 //Cascada de Clasificacion de Rostros
 CvMemStorage            *storage;        //Almacenamiento de informacion
@@ -22,3 +25,8 @@ int AltoImg;							// Auxiliar para la funcion de escalado
 int ancho;								// Auxiliar para la funcion de escalado
 int alto;								// Auxiliar para la funcion de escalado
 int caraaux,cara2;
+IplImage* bienvenida   = cvLoadImage("facemeprints/faceme_presentacion.jpg");
+IplImage* salida       = cvLoadImage("facemeprints/faceme_salida.jpg");
+IplImage* carga        = cvLoadImage("facemeprints/faceme_cargando.jpg");
+IplImage* reconociendo = cvLoadImage("facemeprints/faceme_reconociendo.jpg");
+IplImage* final        = cvLoadImage("facemeprints/faceme_exito.jpg");

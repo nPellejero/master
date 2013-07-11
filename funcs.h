@@ -31,6 +31,7 @@
 #define FALSO 0
 #define VERDADERO !FALSO
 #define TAM 80
+#define EPSILON 1
 
 extern struct dirent **archivos;
 extern struct dirent **carpetas;
@@ -38,8 +39,8 @@ extern struct dirent **carpetas;
 int selecc_arch(const struct dirent *entry);
 int selecc_carpetas(const struct dirent *entry);
 void entrenar();
-void reconocer(char archivoNombresImg[512]);
 void PCA();
+void reconocer(char archivoNombresImg[512]);
 void guardarDatosEntrenamiento();
 int  cargarDatosEntrenamiento(CvMat ** pTrainPersonNumMat);
 int  encontrarVecinoCercano(float * projectedTestFace);
@@ -51,13 +52,17 @@ void detectFaces(IplImage * img);
 void detectar(IplImage * img);
 void ver_imagen(IplImage* imagen);
 
+
 extern IplImage ** arrCaras;                    //Array de imágenes de caras
 extern CvMat    *  numPersonaMat; 	         //Array de ID's de personas
 extern int numCarasEntrenamiento;               //Cantidad de imágenes de entrenamiento
 extern int numEigens;                           //Cantidad de AutoVectores y AutoValores (Eigens)
 extern IplImage * pAvgTrainImg;                 //Imágen promedio
+extern IplImage * pAvgTrainImg2;                 //Imágen promedio de prueba
 extern IplImage ** arrAutoVectores;             //AutoVecotores
+extern IplImage ** arrAutoVectores2;             //AutoVecotores de prueba
 extern CvMat * matAutoValores;                  //AutoValores
+extern CvMat * matAutoValores2;                  //AutoValores de prueba
 extern CvMat * matImgEntrenamientoProyectadas;  //Imágenes de entrenamiento proyectadas en el subespacio PCA
 extern CvHaarClassifierCascade *cascade_f;		 //Cascada de Clasificacion de Rostros
 extern CvMemStorage            *storage;        //Almacenamiento de informacion
@@ -70,5 +75,11 @@ extern int AltoImg;							// Auxiliar para la funcion de escalado
 extern int ancho;								// Auxiliar para la funcion de escalado
 extern int alto;								// Auxiliar para la funcion de escalado
 extern int caraaux,cara2;
+/*Carga de entorno gráfico*/
+extern IplImage* bienvenida;   
+extern IplImage* salida;       
+extern IplImage* carga;        
+extern IplImage* reconociendo; 
+extern IplImage* final;        
 
 #endif

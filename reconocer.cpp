@@ -62,7 +62,7 @@ void reconocer(char archivoNombresImg[512])
 		
 		
 		char strAux[99] = "La Persona es: ";
-		char final[10] = "final";
+		
 		
 		cvNamedWindow("Exito");
 		cvMoveWindow("Exito", 300, 0);

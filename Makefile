@@ -17,7 +17,7 @@ main.o : main.cpp funcs.h
 entrenar.o : entrenar.cpp main.o var.o
 	g++ -c  entrenar.cpp 
 
-pca.o : pca.cpp entrenar.o
+pca.o : pca.cpp entrenar.o pca.h 
 	g++ -c  pca.cpp 	
 
 distancia.o : distancia.cpp main.o
@@ -29,4 +29,6 @@ reconocer.o : reconocer.cpp main.o var.o
 var.o : funcs.h
 	g++ -c var.cpp
 
+eigenobjects.o : eigenobjects.cpp precomp.hpp
+	g++ -c eigenobjects.cpp 
 
