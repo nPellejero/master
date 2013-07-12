@@ -7,7 +7,13 @@ int Gobj_size_height;
 int Geig_step;
 int Geig_size_width;
 int Geig_size_height;
+int Gobj_step1;
 
+int
+icvCalcCovarMatrixEx_8u32fR( int nObjects, void *input, int objStep1,
+                             int ioFlags, int ioBufSize, uchar* buffer,
+                             void *userData, float *avg, int avgStep,
+                             CvSize size, float *covarMatrix );
 
 /*------------------PRINCIPAL COMPONENTS ANALYSIS------------------*/
 void PCA()
@@ -64,8 +70,8 @@ void PCA()
 	Calcula el subespacio para las caras de entrenamiento*/
 	PCAgpu(numCarasEntrenamiento, (void*)arrCaras, (void*)arrAutoVectores, pAvgTrainImg, matAutoValores->data.fl);
 	//imprimirMat(pAvgTrainImg);
-	//imprimirMatFloat(matAutoValores2);
-	//imprimirArrImag(arrAutoVectores2,numEigens);	
+	//imprimirMatFloat(matAutoValores);
+	imprimirArrImag(arrAutoVectores,numEigens);	
 	
 	/*cvCalcEigenObjects(
 		numCarasEntrenamiento,              
@@ -76,11 +82,11 @@ void PCA()
 		0,
 		&calcLimit,                         //CvTermCriteria const.
 		pAvgTrainImg,                       //Guarda la imágen promedio en pAvgTrainImg.
-		matAutoValores->data.fl);
+		matAutoValores->data.fl);*/
 	//imprimirMat(pAvgTrainImg);
 	//imprimirMatFloat(matAutoValores);			
 	//imprimirArrImag(arrAutoVectores,numEigens);	
-	*/
+	
 	//printf("ACA\n");		
 	cvNormalize(matAutoValores, matAutoValores, 1, 0, CV_L1, 0);
 
@@ -134,7 +140,7 @@ void imprimirMat(IplImage* AvgImg)
    
 	cvGetImageRawData( AvgImg, (uchar **) & avg_data, &avg_step, &avg_size );
 	avg_step /= 4;
-	printf("mat_punt:%p\n mat_height: %d\n mat_width:%d\n mat_mat_step: %d\n",avg_data,avg_size.height,avg_size.width,avg_step);
+	//printf("mat_punt:%p\n mat_height: %d\n mat_width:%d\n mat_mat_step: %d\n",avg_data,avg_size.height,avg_size.width,avg_step);
 	for( i = 0; i < avg_size.height; i++, avg_data += avg_step )
 		for(int j = 0; j < avg_size.width; j++ )
 			printf("%f ",avg_data[j]);
@@ -142,8 +148,10 @@ void imprimirMat(IplImage* AvgImg)
 
 void imprimirArrImag(IplImage** arrImg,int n)
 {
-	for(int i=0; i< n;i++)
+	for(int i=0; i< n;i++) {
 		imprimirMat(arrImg[i]);
+		printf("\n");	
+	}
 }
 
 void PCAgpu(int nObjects, void* input, void* output, IplImage* AvgImg, float* eigVals) {
@@ -187,32 +195,233 @@ void PCAgpu(int nObjects, void* input, void* output, IplImage* AvgImg, float* ei
         eigs[i] = eig_data;
     }    
 	
-	CvTermCriteria calcLimit;
-	calcLimit = cvTermCriteria( CV_TERMCRIT_ITER, nEigens, 1);
 
 	
-	
-	
-	PCAgpu_i( nObjects, objs, obj_step,eigs, eig_step, obj_size.width,obj_size.height, avg_data, avg_step, eigVals);
+	PCAgpu_i( nObjects, objs, obj_step, eig_step, obj_size.width,obj_size.height, avg_data, avg_step); //descartamos
     
+    //void *buffer = 0;
+    //buffer = (void *) cvAlloc( 10 );
     float* covarMatrix = (float *) cvAlloc( sizeof( float ) * nObjects * nObjects );
-    PCAgpu_cov( nObjects, objs, avg_data, Gavg_step, Gobj_size_width,Gobj_size_height, covarMatrix );
-       
+    PCAgpu_cov( nObjects, objs, avg_data, Gavg_step, Gobj_size_width,Gobj_size_height, covarMatrix ); //descartada
+    /*obj_size.width = Gobj_size_width;
+    obj_size.height = Gobj_size_height;
+    assert( obj_size.width == Gobj_size_width && obj_size.height == Gobj_size_height);
+    int err2 = icvCalcCovarMatrixEx_8u32fR(nObjects, (void*)objs, Gobj_step1,CV_EIGOBJ_NO_CALLBACK,
+							0,(uchar *) buffer,0, avg_data,4 * Gavg_step,obj_size, covarMatrix );
+  
+    assert(err2 == 0);
+     */  
     float* ev = (float *) cvAlloc( sizeof( float ) * nObjects * nObjects );
-    int err = PCAgpu_eig( covarMatrix, ev, eigVals, nObjects, 0.0f );
+    int err = PCAgpu_eig( covarMatrix, ev, eigVals, nObjects, 0.0f );//la descartamos
     assert(err != 1 && err != 2);
+	cvFree( &covarMatrix );
+	PCAgpu_d(nObjects, objs,eigs,Geig_step,Geig_size_width,Geig_size_height,avg_data,eigVals,ev);      
 
-	PCAgpu_d(nObjects, objs,eigs,Gobj_size_width,Gobj_size_height,Geig_step,Geig_size_width,Geig_size_height,Gobj_step,Gavg_step,avg_data,eigVals,ev);      
-
+	cvFree( &ev );
 
     cvFree( &objs );
     cvFree( &eigs );
-	cvFree( &covarMatrix );
-	cvFree( &ev );
 }
 
+int
+icvCalcCovarMatrixEx_8u32fR( int nObjects, void *input, int objStep1,
+                             int ioFlags, int ioBufSize, uchar* buffer,
+                             void *userData, float *avg, int avgStep,
+                             CvSize size, float *covarMatrix )
+{
+    int objStep = objStep1;
 
-void PCAgpu_i(int nObjects, uchar** objs,int obj_step,float** eigs,int eig_step,int obj_size_width, int obj_size_height ,float* avg_data,int avg_step,float* eigVals)
+    /* ---- TEST OF PARAMETERS ---- */
+
+    if( nObjects < 2 )
+        return 1;
+    if( ioFlags < 0 || ioFlags > 3 )
+        return 2;
+    if( ioFlags && ioBufSize < 1024 )
+        return 3;
+    if( ioFlags && buffer == NULL )
+        return 4;
+    if( input == NULL || avg == NULL || covarMatrix == NULL )
+        return 5;
+    if( size.width > objStep || 4 * size.width > avgStep || size.height < 1 )
+        return 6;
+
+    avgStep /= 4;
+
+    if( ioFlags & CV_EIGOBJ_INPUT_CALLBACK )    /* ==== USE INPUT CALLBACK ==== */
+    {
+        int nio, ngr, igr, n = size.width * size.height, mm = 0;
+        CvCallback read_callback = ((CvInput *) & input)->callback;
+        uchar *buffer2;
+
+        objStep = n;
+        nio = ioBufSize / n;    /* number of objects in buffer */
+        ngr = nObjects / nio;   /* number of io groups */
+        if( nObjects % nio )
+            mm = 1;
+        ngr += mm;
+
+        buffer2 = (uchar *)cvAlloc( sizeof( uchar ) * n );
+        if( buffer2 == NULL )
+            return 7;
+
+        for( igr = 0; igr < ngr; igr++ )
+        {
+            int k, l;
+            int io, jo, imin = igr * nio, imax = imin + nio;
+            uchar *bu1 = buffer, *bu2;
+
+            if( imax > nObjects )
+                imax = nObjects;
+
+            /* read igr group */
+            for( io = imin; io < imax; io++, bu1 += n )
+            {
+                int r;
+
+                r = (int)read_callback( io, (void *) bu1, userData );
+                if( r )
+                    return r;
+            }
+
+            /* diagonal square calc */
+            bu1 = buffer;
+            for( io = imin; io < imax; io++, bu1 += n )
+            {
+                bu2 = bu1;
+                for( jo = io; jo < imax; jo++, bu2 += n )
+                {
+                    float w = 0.f;
+                    float *fu = avg;
+                    int ij = 0;
+
+                    for( k = 0; k < size.height; k++, fu += avgStep )
+                        for( l = 0; l < size.width; l++, ij++ )
+                        {
+                            float f = fu[l], u1 = bu1[ij], u2 = bu2[ij];
+
+                            w += (u1 - f) * (u2 - f);
+                        }
+                    covarMatrix[io * nObjects + jo] = covarMatrix[jo * nObjects + io] = w;
+                }
+            }
+
+            /* non-diagonal elements calc */
+            for( jo = imax; jo < nObjects; jo++ )
+            {
+                int r;
+
+                bu1 = buffer;
+                bu2 = buffer2;
+
+                /* read jo object */
+                r = (int)read_callback( jo, (void *) bu2, userData );
+                if( r )
+                    return r;
+
+                for( io = imin; io < imax; io++, bu1 += n )
+                {
+                    float w = 0.f;
+                    float *fu = avg;
+                    int ij = 0;
+
+                    for( k = 0; k < size.height; k++, fu += avgStep )
+                    {
+                        for( l = 0; l < size.width - 3; l += 4, ij += 4 )
+                        {
+                            float f = fu[l];
+                            uchar u1 = bu1[ij];
+                            uchar u2 = bu2[ij];
+
+                            w += (u1 - f) * (u2 - f);
+                            f = fu[l + 1];
+                            u1 = bu1[ij + 1];
+                            u2 = bu2[ij + 1];
+                            w += (u1 - f) * (u2 - f);
+                            f = fu[l + 2];
+                            u1 = bu1[ij + 2];
+                            u2 = bu2[ij + 2];
+                            w += (u1 - f) * (u2 - f);
+                            f = fu[l + 3];
+                            u1 = bu1[ij + 3];
+                            u2 = bu2[ij + 3];
+                            w += (u1 - f) * (u2 - f);
+                        }
+                        for( ; l < size.width; l++, ij++ )
+                        {
+                            float f = fu[l], u1 = bu1[ij], u2 = bu2[ij];
+
+                            w += (u1 - f) * (u2 - f);
+                        }
+                    }
+                    covarMatrix[io * nObjects + jo] = covarMatrix[jo * nObjects + io] = w;
+                }
+            }
+        }                       /* igr */
+
+        cvFree( &buffer2 );
+    }                           /* if() */
+
+    else
+        /* ==== NOT USE INPUT CALLBACK ==== */
+    {
+        int i, j;
+        uchar **objects = (uchar **) (((CvInput *) & input)->data);
+
+        for( i = 0; i < nObjects; i++ )
+        {
+            uchar *bu = objects[i];
+
+            for( j = i; j < nObjects; j++ )
+            {
+                int k, l;
+                float w = 0.f;
+                float *a = avg;
+                uchar *bu1 = bu;
+                uchar *bu2 = objects[j];
+
+                for( k = 0; k < size.height;
+                     k++, bu1 += objStep, bu2 += objStep, a += avgStep )
+                {
+                    for( l = 0; l < size.width - 3; l += 4 )
+                    {
+                        float f = a[l];
+                        uchar u1 = bu1[l];
+                        uchar u2 = bu2[l];
+
+                        w += (u1 - f) * (u2 - f);
+                        f = a[l + 1];
+                        u1 = bu1[l + 1];
+                        u2 = bu2[l + 1];
+                        w += (u1 - f) * (u2 - f);
+                        f = a[l + 2];
+                        u1 = bu1[l + 2];
+                        u2 = bu2[l + 2];
+                        w += (u1 - f) * (u2 - f);
+                        f = a[l + 3];
+                        u1 = bu1[l + 3];
+                        u2 = bu2[l + 3];
+                        w += (u1 - f) * (u2 - f);
+                    }
+                    for( ; l < size.width; l++ )
+                    {
+                        float f = a[l];
+                        uchar u1 = bu1[l];
+                        uchar u2 = bu2[l];
+
+                        w += (u1 - f) * (u2 - f);
+                    }
+                }
+
+                covarMatrix[i * nObjects + j] = covarMatrix[j * nObjects + i] = w;
+            }
+        }
+    }                           /* else */
+
+    return 0;
+}
+
+void PCAgpu_i(int nObjects, uchar** objs,int obj_step,int eig_step,int obj_size_width, int obj_size_height ,float* avg_data,int avg_step)
 {
 	int i,j;
 
@@ -222,6 +431,7 @@ void PCAgpu_i(int nObjects, uchar** objs,int obj_step,float** eigs,int eig_step,
     int avg_size_height;	
     int eig_size_width;
     int eig_size_height;	
+	int obj_step1 = obj_step;
 	
 	avg_step /= 4.0f;
 	m = 1.0f/(float)nObjects; //para ahorrar calculos
@@ -230,7 +440,7 @@ void PCAgpu_i(int nObjects, uchar** objs,int obj_step,float** eigs,int eig_step,
     {
 		obj_size_width *= obj_size_height;
 		obj_size_height = 1;
-		obj_step =  eig_step = avg_step = obj_size_width;
+		obj_step = obj_step1 = eig_step = avg_step = obj_size_width;
 	}	
 	avg_size_width = eig_size_width = obj_size_width;
 	avg_size_height = eig_size_height = obj_size_height;
@@ -249,7 +459,7 @@ void PCAgpu_i(int nObjects, uchar** objs,int obj_step,float** eigs,int eig_step,
 
         bf = avg_data;
         assert(avg_step == obj_step);
-        for( k = 0; k < avg_size_height; k++, bf += avg_step, bu += obj_step )
+        for( k = 0; k < avg_size_height; k++, bf += avg_step, bu += obj_step1 )
             for( l = 0; l < avg_size_width; l++ )
                 bf[l] += bu[l];
     }
@@ -258,21 +468,30 @@ void PCAgpu_i(int nObjects, uchar** objs,int obj_step,float** eigs,int eig_step,
         for( j = 0; j < avg_size_width; j++ )
             bf[j] *= m;            
     
-    
+    assert(obj_step == avg_step);
+    assert(eig_step == avg_step);
+    assert(obj_step1 == obj_step);
+
+    //ACA objStep = objStep1 = eigStep = eigStep1 = avgStep
+    assert(eig_size_width == obj_size_width);
+	assert(eig_size_height == obj_size_height);
+
 	Gobj_step = obj_step;
 	Gavg_step = avg_step;
+	Gobj_step1 = obj_step1;
 	Gobj_size_width = obj_size_width;
 	Gobj_size_height = obj_size_height;
 	Geig_step = eig_step;
 	Geig_size_width = eig_size_width;
 	Geig_size_height = eig_size_height;
-	
+
 }
 
 void PCAgpu_cov(int nObjects, uchar** objects, float *avg, int avg_step,int size_width,int size_height, float *covarMatrix)
 {
 	int obj_step = avg_step;
 	int i, j;
+	
 	
 	for( i = 0; i < nObjects; i++ )
     {
@@ -473,25 +692,31 @@ int PCAgpu_eig(float *A, float *V, float *E, int n, float eps) //metodo rotacion
     return 0;
 }
 
-void PCAgpu_d(int nObjects, uchar** input,float** output,int size_width,int size_height,int obj_step,int avg_step,
+void PCAgpu_d(int nObjects, uchar** input,float** output,
 					int eig_step,int eig_size_width,int eig_size_height,float* avg,float* eigVals, float* ev)
 {
-	int m1= nObjects - 1; //max iter
+	int m1= 0; //max iter
 	//float epsilon=0;
 	int k, p, l, i;
 	float *bf = 0;
-	
 	 /* Eigen objects number determination */
 
-    for( i = 0; i < m1; i++ )
+   if(CV_TERMCRIT_ITER != CV_TERMCRIT_NUMBER )
+    {
+		printf("AAAAAAAAAAAAAAA\n");
+        for( i = 0; i < m1; i++ )
 		if( fabs( eigVals[i] / eigVals[0] ) < EPSILON )
 			break;
-	m1 = i;
+		m1 = i;
+    }
+    else
+        m1 = nObjects - 1;
+  
     
     //epsilon = (float) fabs( eigVals[m1 - 1] / eigVals[0] );
 
     for( i = 0; i < m1; i++ )
-        eigVals[i] = (float) (1.0 / sqrt( (double)eigVals[i] ));
+        eigVals[i] = (float) (1.0f / sqrt( (double)eigVals[i] ));
         
 
     for( i = 0; i < m1; i++ )       /* e.o. annulation */
@@ -515,9 +740,9 @@ void PCAgpu_d(int nObjects, uchar** input,float** output,int size_width,int size
 
 			bf = avg;
 			
-			for( p = 0; p < size_height; p++, bu += obj_step, bf += avg_step, be += eig_step )
+			for( p = 0; p < eig_size_height; p++, bu += eig_step, bf += eig_step, be += eig_step )
 			{
-				for( l = 0; l < size_width - 3; l += 4 )
+				for( l = 0; l < eig_size_width - 3; l += 4 )
 				{
 					float f = bf[l];
 					uchar u = bu[l];
@@ -534,7 +759,7 @@ void PCAgpu_d(int nObjects, uchar** input,float** output,int size_width,int size
 					u = bu[l + 3];
 					be[l + 3] += v * (u - f);
 				}
-				for( ; l < size_width; l++ )
+				for( ; l < eig_size_width; l++ )
 					be[l] += v * (bu[l] - bf[l]);
 					
 
@@ -543,7 +768,7 @@ void PCAgpu_d(int nObjects, uchar** input,float** output,int size_width,int size
 	}                       /* k */
 
 	for( i = 0; i < m1; i++ )
-		eigVals[i] = 1.f / (eigVals[i] * eigVals[i]);
+		eigVals[i] = 1.0f / (eigVals[i] * eigVals[i]);
 
 }
 
