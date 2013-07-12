@@ -1,0 +1,23 @@
+CXX=/opt/mvapich2-1.9a2/bin/mpicxx
+CXXFLAGS=-g -ggdb -Wall -Wno-unused-function
+CPPFLAGS=-I/opt/cuda/include
+
+CU=nvcc
+CUFLAGS=-g -G -arch=sm_20 -use_fast_math 
+
+LDFLAGS=-L/opt/cuda/lib64 -lcudart -lm  
+
+TARGETS=kernel
+
+all: $(TARGETS)
+
+%.o: %.cu
+	$(CU) $(CPPFLAGS) $(CUFLAGS) -o $@ -c $<
+
+kernel: pcaGPU.o kernel.o pca.o helpers_cuda.h
+	g++ $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+
+.PHONY: clean all
+
+clean:
+	rm -f *.o $(TARGETS)

@@ -1,0 +1,25 @@
+CXX=/opt/mvapich2-1.9a2/bin/mpicxx
+CXXFLAGS=-g -ggdb -Wall -Wno-unused-function
+CPPFLAGS=-I../common -I/opt/cuda/include
+
+CU=nvcc
+CUFLAGS=-g -G -arch=sm_20 -use_fast_math `sdl-config --cflags`
+
+LDFLAGS=-L/opt/cuda/lib64 -lcudart -lm -L../common -lsdlstuff `sdl-config --libs` -lSDL_image
+
+TARGETS=pcaGPU
+
+all: $(TARGETS)
+
+%.o: %.cu
+	$(CU) $(CPPFLAGS) $(CUFLAGS) -o $@ -c $<
+
+
+pcaGPU: pcaGPU.o kernel_avg.o 
+	make -C ../common
+	g++ -c $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
+
+.PHONY: clean all
+
+clean:
+	rm -f *.o $(TARGETS)
